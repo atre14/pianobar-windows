@@ -685,7 +685,7 @@ static WaitressReturn_t WaitressTlsRead (void *data, char *buf,
 		if (ret < 0)
 			return (waith->request.readWriteRet = WAITRESS_RET_TLS_READ_ERR);
 
-		if (ret > 0)
+		if (ret >= 0)
 			break;
 
 	} while (1);
