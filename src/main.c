@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+/* fork () */
 #include <unistd.h>
 #include <time.h>
 #include <ctype.h>
@@ -46,12 +47,16 @@ THE SOFTWARE.
 #include <termios.h>
 #include <sys/select.h>
 typedef struct termios termios;
+/* waitpid () */
+#include <sys/types.h>
+#include <sys/wait.h>
 #endif
 #include <pthread.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <limits.h>
 #include <signal.h>
+
 
 /* pandora.com library */
 #include <piano.h>
@@ -102,20 +107,77 @@ static bool BarMainLoginUser (BarApp_t *app) {
 
 /*	ask for username/password if none were provided in settings
  */
-static void BarMainGetLoginCredentials (BarSettings_t *settings,
+static bool BarMainGetLoginCredentials (BarSettings_t *settings,
 		BarReadlineFds_t *input) {
 	if (settings->username == NULL) {
 		char nameBuf[100];
+
 		BarUiMsg (settings, MSG_QUESTION, "Email: ");
 		BarReadlineStr (nameBuf, sizeof (nameBuf), input, BAR_RL_DEFAULT);
 		settings->username = bar_strdup (nameBuf);
 	}
+
 	if (settings->password == NULL) {
-		char passBuf[100];
-		BarUiMsg (settings, MSG_QUESTION, "Password: ");
-		BarReadlineStr (passBuf, sizeof (passBuf), input, BAR_RL_PASSWORD);
-		settings->password = bar_strdup (passBuf);
+
+		if (settings->passwordCmd == NULL) {
+			char passBuf[100];
+			BarUiMsg (settings, MSG_QUESTION, "Password: ");
+			BarReadlineStr (passBuf, sizeof (passBuf), input, BAR_RL_PASSWORD);
+			settings->password = bar_strdup (passBuf);
+		} else {
+			//pid_t chld;
+			//int pipeFd[2];
+
+			BarUiMsg (settings, MSG_ERR, "Requesting passwords from external helper is not supported on this platform.");
+			return false;
+
+			//if (pipe (pipeFd) == -1) {
+			//	BarUiMsg (settings, MSG_NONE, "Error: %s\n", strerror (errno));
+			//	return false;
+			//}
+
+			//chld = fork ();
+			//if (chld == 0) {
+			//	/* child */
+			//	close (pipeFd[0]);
+			//	dup2 (pipeFd[1], fileno (stdout));
+			//	execl ("/bin/sh", "/bin/sh", "-c", settings->passwordCmd, (char *) NULL);
+			//	BarUiMsg (settings, MSG_NONE, "Error: %s\n", strerror (errno));
+			//	close (pipeFd[1]);
+			//	exit (1);
+			//} else if (chld == -1) {
+			//	BarUiMsg (settings, MSG_NONE, "Error: %s\n", strerror (errno));
+			//	return false;
+			//} else {
+			//	/* parent */
+			//	int status;
+
+			//	close (pipeFd[1]);
+			//	memset (passBuf, 0, sizeof (passBuf));
+			//	read (pipeFd[0], passBuf, sizeof (passBuf)-1);
+			//	close (pipeFd[0]);
+
+			//	/* drop trailing newlines */
+			//	ssize_t len = strlen (passBuf)-1;
+			//	while (len >= 0 && passBuf[len] == '\n') {
+			//		passBuf[len] = '\0';
+			//		--len;
+			//	}
+
+			//	waitpid (chld, &status, 0);
+			//	if (WEXITSTATUS (status) == 0) {
+			//		settings->password = strdup (passBuf);
+			//		BarUiMsg (settings, MSG_NONE, "Ok.\n");
+			//	} else {
+			//		BarUiMsg (settings, MSG_NONE, "Error: Exit status %i.\n", WEXITSTATUS (status));
+			//		return false;
+			//	}
+			//}
+
+		}
 	}
+
+	return true;
 }
 
 /*	get station list
@@ -303,7 +365,9 @@ static void BarMainPrintTime (BarApp_t *app) {
 static void BarMainLoop (BarApp_t *app) {
 	pthread_t playerThread;
 
-	BarMainGetLoginCredentials (&app->settings, &app->input);
+	if (!BarMainGetLoginCredentials (&app->settings, &app->input)) {
+		return;
+	}
 
 	BarMainLoadProxy (&app->settings, &app->waith);
 
@@ -336,6 +400,7 @@ static void BarMainLoop (BarApp_t *app) {
 			if (app->playlist != NULL) {
 				PianoSong_t *histsong = app->playlist;
 				app->playlist = app->playlist->next;
+				histsong->next = NULL;
 				BarUiHistoryPrepend (app, histsong);
 			}
 			if (app->playlist == NULL) {
@@ -412,6 +477,7 @@ int main (int argc, char **argv) {
 
 	WaitressInit (&app.waith);
 	app.waith.url.host = (host = bar_strdup (app.settings.rpcHost));
+	app.waith.url.tlsPort = app.settings.rpcTlsPort;
 	app.waith.tlsFingerprint = app.settings.tlsFingerprint;
 
 	/* init fds */
@@ -450,6 +516,9 @@ int main (int argc, char **argv) {
 		close (app.input.fds[1]);
 	}
 	#endif
+
+	/* write statefile */
+	BarSettingsWrite (app.curStation, &app.settings);
 
 	PianoDestroy (&app.ph);
 	PianoDestroyPlaylist (app.songHistory);

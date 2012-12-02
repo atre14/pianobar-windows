@@ -918,6 +918,8 @@ void BarUiHistoryPrepend (BarApp_t *app, PianoSong_t *song) {
 				PianoDestroyPlaylist (delSong);
 			}
 		}
+	} else {
+		PianoDestroyPlaylist (song);
 	}
 }
 

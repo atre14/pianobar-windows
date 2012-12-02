@@ -297,12 +297,21 @@ Icon for loved songs.
 Your pandora.com password. Plain-text.
 
 .TP
+.B password_command = gpg --decrypt ~/password
+Use output of command as password. This setting is overridden by specifying a
+password with
+.B password.
+
+.TP
 .B proxy = http://user:password@host:port/
 Use a http proxy. Note that this setting overrides the http_proxy environment
 variable. Only "Basic" http authentication is supported.
 
 .TP
 .B rpc_host = tuner.pandora.com
+
+.TP
+.B rpc_tls_port = 443
 
 .TP
 .B sort = {name_az, name_za, quickmix_01_name_az, quickmix_01_name_za, quickmix_10_name_az, quickmix_10_name_za}

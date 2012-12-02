@@ -66,6 +66,7 @@ char *PianoDecryptString (BLOWFISH_CTX * ctx, const char * const input,
     ret = Blowfish_DecryptData (ctx, (uint32_t*)output, (uint32_t*)output, outputLen);
     if (BLOWFISH_OK != ret) {
         fprintf (stderr, "Failure: Data block is not aligned to 64-bytes/\n");
+        free (output);
         return NULL;
     }
 
@@ -93,6 +94,7 @@ char *PianoEncryptString (BLOWFISH_CTX * ctx, const char *s) {
     ret = Blowfish_EncryptData (ctx, (uint32_t*)paddedInput, (uint32_t*)paddedInput, paddedInputLen);
     if (BLOWFISH_OK != ret) {
         fprintf (stderr, "Failure: Data block is not aligned to 64-bytes/\n");
+        free (paddedInput);
         return NULL;
     }
 
