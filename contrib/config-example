@@ -24,10 +24,14 @@
 #act_addshared = j
 #act_songmove = m
 #act_songnext = n
-#act_songpause = p
+#act_songpause = S
+#act_songpausetoggle = p
+#act_songpausetoggle2 =  
+#act_songplay = P
 #act_quit = q
 #act_stationrename = r
 #act_stationchange = s
+#act_stationcreatefromsong = v
 #act_songtired = t
 #act_upcoming = u
 #act_stationselectquickmix = x
@@ -57,5 +61,5 @@
 #device = D01
 #encrypt_password = 2%3WCL*JU$MP]4
 #decrypt_password = U#IO$RZPAB%VX2
-#tls_fingerprint = 394067EECB420E3911985C2CC02C12AE89BB09B2
+#tls_fingerprint = B0A1EB460B1B6F33A1B6CB500C6523CB2E6EC946
 
