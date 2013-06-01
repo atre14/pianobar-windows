@@ -140,6 +140,7 @@ void BarSettingsRead (BarSettings_t *settings) {
 	settings->autoselect = true;
 	settings->history = 5;
 	settings->volume = 0;
+	settings->maxPlayerErrors = 5;
 	settings->sortOrder = BAR_SORT_NAME_AZ;
 	settings->loveIcon = bar_strdup (" <3");
 	settings->banIcon = bar_strdup (" </3");
@@ -275,6 +276,8 @@ void BarSettingsRead (BarSettings_t *settings) {
 				settings->eventCmd = strdup (val);
 			} else if (streq ("history", key)) {
 				settings->history = atoi (val);
+			} else if (streq ("max_player_errors", key)) {
+				settings->maxPlayerErrors = atoi (val);
 			#ifdef _WIN32
 			} else if (streq ("width", key)) {
 				settings->width = atoi (val);
